@@ -3,8 +3,8 @@ import datetime
 import pickle
 import os.path
 from googleapiclient.discovery import build
-# from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from oauth2client import crypt
 from oauth2client.service_account import ServiceAccountCredentials
 
 # If modifying these scopes, delete the file token.pickle.
@@ -13,43 +13,37 @@ key_file_location = "/home/manprax/Desktop/firki2.0/google_calender/service_acco
 
 
 class GoogleCalendarApi:
-    def __init__(self):
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            key_file_location, scopes=SCOPES)
-
+    def __init__(self, client_email, private_key, private_key_id, client_id):
+        service_account_email = client_email
+        private_key_pkcs8_pem = private_key
+        private_key_id = private_key_id
+        signer = crypt.Signer.from_string(private_key_pkcs8_pem)
+        credentials = ServiceAccountCredentials(service_account_email, signer, scopes=SCOPES,
+                                                private_key_id=private_key_id,
+                                                client_id=client_id)
+        credentials._private_key_pkcs8_pem = private_key_pkcs8_pem
         # Build the service object.
-
         self.service = build('calendar', 'v3', credentials=credentials)
-        # return service
-
-    def get_service(self):
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            key_file_location, scopes=SCOPES)
-
-        # Build the service object.
-
-        service = build('calendar', 'v3', credentials=credentials)
-        return service
 
     def create_calendar(self, calendar_name):
         print(
             "-------------------------creating new calendar-----------------------")
-        created_calendar=None
-        message=None
+        created_calendar = None
+        message = None
         body = {
             'summary': calendar_name,
             # 'timeZone': 'America/Los_Angeles'  #'timeZone': 'UTC'
         }
         try:
             created_calendar = self.service.calendars().insert(body=body).execute()
-            message='calendar {} created'.format(calendar_name)
+            message = 'calendar {} created'.format(calendar_name)
             # print(created_calendar['id'])
         except Exception as e:
             # print(e)
-            message='Exception in create_calendar :{}'.format(e)
+            message = 'Exception in create_calendar :{}'.format(e)
             print('Exception in create_calendar :{}'.format(e))
 
-        return created_calendar,message
+        return created_calendar, message
 
     def clear_calendar(self, calendar_id='primary'):
         '''
@@ -57,7 +51,7 @@ class GoogleCalendarApi:
         '''
         print(
             "-------------------------clearing events of the given calendar-----------------------")
-        service = self.get_service()
+        service = self.service
         response = self.service.calendars().clear('primary').execute()
 
         print(response)
@@ -68,14 +62,14 @@ class GoogleCalendarApi:
         '''
         print(
             "-------------------------clearing events of the given calendar-----------------------")
-        service = self.get_service()
+        service = self.service
         response = self.service.calendars().clear('primary').execute()
 
         print(response)
 
     def list_user_calendar(self):
         print("-------------------------Getting user's calendars-----------------------")
-        service = self.get_service()
+        service = self.service
         page_token = None
         while True:
             calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
@@ -86,34 +80,34 @@ class GoogleCalendarApi:
             if not page_token:
                 break
 
-    def get_calendar_by_name(self,calendar_name):
-        service = self.get_service()
+    def get_calendar_by_name(self, calendar_name):
+        service = self.service
         # By default the page size can never be larger than 250 entries.
         # maxResults=100
         page_token = None
-        calendar=None
-        message='calendar {} not exists'.format(calendar_name)
+        calendar = None
+        message = 'calendar {} not exists'.format(calendar_name)
         try:
             while True:
                 calendar_list = self.service.calendarList().list(pageToken=page_token).execute()
-                filtered_list = list(filter(lambda x: x['summary'] == calendar_name, calendar_list['items']))
+                filtered_list = list(
+                    filter(lambda x: x['summary'] == calendar_name, calendar_list['items']))
                 if len(filtered_list):
-                    calendar=filtered_list[0]
-                    message="calendar {} already exists".format(calendar_name)
+                    calendar = filtered_list[0]
+                    message = "calendar {} already exists".format(
+                        calendar_name)
                     break
                 elif not page_token:
                     break
                 else:
                     page_token = calendar_list.get('nextPageToken')
         except Exception as e:
-            message='Exception in get_calendar_by_name : {}'.format(e)
-        return calendar,message
-
-
+            message = 'Exception in get_calendar_by_name : {}'.format(e)
+        return calendar, message
 
     def create_event(self, calendar_id, event_dic):
         calendar_id = "ul237tpd4st679bfufj8snkfh8@group.calendar.google.com"
-        service = self.get_service()
+        service = self.service
         event = service.events().insert(calendarId=calendar_id, sendNotifications=True,
                                         conferenceDataVersion=1, body=event_dic).execute()
         print('Event created: %s' % (event.get('htmlLink')))
@@ -122,7 +116,7 @@ class GoogleCalendarApi:
 
     def create_acl_rule(self, calendar_id, user_email):
         # calendar_id = "8rp4khl5v5d9k9tnsq1mlglgv0@group.calendar.google.com"
-        service = self.get_service()
+        service = self.service
         rule = {
             "role": "owner",
             "scope": {
@@ -135,7 +129,7 @@ class GoogleCalendarApi:
         print(created_rule['id'])
 
     def list_calendar_events(self, calendar_id):
-        service = self.get_service()
+        service = self.service
         calendar_id = "ul237tpd4st679bfufj8snkfh8@group.calendar.google.com"
 
         # Call the Calendar API
@@ -158,7 +152,7 @@ class GoogleCalendarApi:
             #     print(start,event['htmlLink'])
 
     def update_event(self, calendar_id, event_id, start, end, description):
-        service = self.get_service()
+        service = self.service
         try:
             event = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
         except HttpError as e:
