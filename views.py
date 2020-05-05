@@ -111,3 +111,40 @@ def create_event(request):
         status_code=status.HTTP_200_OK
 
     return Response(response,status=status_code)
+
+@api_view(["GET"])
+def get_calendar_events(request):
+    calendarId = request.GET.get("calendarId")
+    timeMax = request.GET.get("timeMax")
+    timeMin = request.GET.get("timeMin")
+    nextPageToken= request.GET.get("nextPageToken")
+    q = request.GET.get("q")
+
+    response={'events':None,'status':False,'message':None}
+    try:
+        if not calendarId:
+            response={
+                'message':"calendarId is required",
+                'found':False,
+                'events':None,
+                'nextPageToken':None
+            }
+            status_code=status.HTTP_400_BAD_REQUEST
+        else:
+            obj = GoogleCalendarApi(
+                client_email, private_key, private_key_id, client_id)
+            events,nextPageToken,message,found=obj.get_calendar_events(calendarId,timeMax,timeMin,nextPageToken)
+            response={
+                    'message':message,
+                    'found':found,
+                    'events':events,
+                    'nextPageToken':nextPageToken
+                }
+        if not found:
+            status_code=status.HTTP_400_BAD_REQUEST
+        else:
+            status_code=status.HTTP_200_OK
+    except Exception as e:
+        response['message'] = 'exception in api{}'.format(e)
+        status_code=status.HTTP_400_BAD_REQUEST
+    return Response(response,status=status_code)

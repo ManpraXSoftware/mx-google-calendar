@@ -182,6 +182,21 @@ class GoogleCalendarApi:
             message='Exception in get_event : {}'.format(e)
         return event,message,status
 
+    def get_calendar_events(self,calendarId,timeMax=None,timeMin=None,nextPageToken=None):
+        page_token = nextPageToken
+        try:
+            response= self.service.events().list(
+                calendarId=calendarId, pageToken=page_token,timeMax=timeMax,timeMin=timeMin).execute()
+            events=response['items']
+            nextPageToken=response.get('nextPageToken')
+            found=True
+            message="found"
+        except Exception as e:
+            events=None
+            nextPageToken=None
+            message="{}".format(e)
+            found=False
+        return events,nextPageToken,message,found
 
 
 
@@ -224,36 +239,37 @@ class GoogleCalendarApi:
     # return service.events().insert(calendarId='primary', body=event, sendNotifications=True).execute()
 
 
-if __name__ == '__main__':
-    event = {
-        'summary': 'random event from code',
-        'sendUpdates': "all",
-        # 'location': 'Any location',
-        'description': 'random event from code',
-        'start': {
-            'dateTime': '2020-04-27T11:45:00.603111+05:30',
-        },
-        'end': {
-            'dateTime': '2020-04-27T11:50:00.603111+05:30',
-        },
-        # 'attendees': [
-        #     {'email': 'kritika2014arora@gmail.com'},
-        #     {'email': 'mishramail10@gmail.com'},
-        #     {'email': 'praveenmishra1493@gmail.com'},
-        # ],
-        'reminders': {
-            'useDefault': False,
-            'overrides': [
-                {'method': 'email', 'minutes': 24 * 60},
-                {'method': 'popup', 'minutes': 10},
-            ],
-        },
-        "conferenceData": {
-            "createRequest": {
-                "requestId": "12345678910"
-            }
-        }
-    }
+# if __name__ == '__main__':
+
+#     event = {
+#         'summary': 'random event from code',
+#         'sendUpdates': "all",
+#         # 'location': 'Any location',
+#         'description': 'random event from code',
+#         'start': {
+#             'dateTime': '2020-04-27T11:45:00.603111+05:30',
+#         },
+#         'end': {
+#             'dateTime': '2020-04-27T11:50:00.603111+05:30',
+#         },
+#         # 'attendees': [
+#         #     {'email': 'kritika2014arora@gmail.com'},
+#         #     {'email': 'mishramail10@gmail.com'},
+#         #     {'email': 'praveenmishra1493@gmail.com'},
+#         # ],
+#         'reminders': {
+#             'useDefault': False,
+#             'overrides': [
+#                 {'method': 'email', 'minutes': 24 * 60},
+#                 {'method': 'popup', 'minutes': 10},
+#             ],
+#         },
+#         "conferenceData": {
+#             "createRequest": {
+#                 "requestId": "12345678910"
+#             }
+#         }
+#     }
     # m = GoogleCalendarApi()
 
     # # # create event
