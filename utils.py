@@ -9,7 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-key_file_location = "/home/manprax/Desktop/firki2.0/google_calender/service_account.json"
+timeZone= "Asia/Kolkata"
 
 
 class GoogleCalendarApi:
@@ -106,13 +106,18 @@ class GoogleCalendarApi:
         return calendar, message
 
     def create_event(self, calendar_id, event_dic):
-        calendar_id = "ul237tpd4st679bfufj8snkfh8@group.calendar.google.com"
-        service = self.service
-        event = service.events().insert(calendarId=calendar_id, sendNotifications=True,
-                                        conferenceDataVersion=1, body=event_dic).execute()
-        print('Event created: %s' % (event.get('htmlLink')))
-        print('Event data: %s' % (event))
-        return event['id']
+        try:
+            service = self.service
+            event = service.events().insert(calendarId=calendar_id, sendNotifications=True,
+                                            conferenceDataVersion=1, body=event_dic).execute()
+            created=True
+            message="created"
+        except Exception as e:
+            event=None
+            message='Exception in create_event func :[{}]'.format(e)
+            created =False
+        print(event)
+        return event,message,created
 
     def create_acl_rule(self, calendar_id, user_email):
         # calendar_id = "8rp4khl5v5d9k9tnsq1mlglgv0@group.calendar.google.com"
@@ -165,6 +170,58 @@ class GoogleCalendarApi:
         updated_event = service.events().update(
             calendarId=calendar_id, eventId=event['id'], body=event).execute()
         return updated_event["id"]
+
+    def get_event(self,calendarId,eventId):
+        try:
+            event = self.service.events().get(calendarId=calendarId, eventId=eventId).execute()
+            status=True
+            message="Obtained event with eventId {}".format(eventId)
+        except Exception as e:
+            event = None
+            status=False
+            message='Exception in get_event : {}'.format(e)
+        return event,message,status
+
+
+
+
+
+    # def create_event(self, start_time_str, summary, duration=1, attendees=None, description=None, location=None):
+    # matches = list(datefinder.find_dates(start_time_str))
+    # if len(matches):
+    #     start_time = matches[0]
+    #     end_time = start_time + timedelta(hours=duration)
+
+    # event = {
+    #     'summary': summary,
+    #     'location': location,
+    #     'description': description,
+    #     'start': {
+    #         'dateTime': start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+    #         'timeZone': timezone,
+    #     },
+    #     'end': {
+    #         'dateTime': end_time.strftime("%Y-%m-%dT%H:%M:%S"),
+    #         'timeZone': timezone,
+    #     },
+    #     'attendees': [
+    #         {'email': attendees},
+    #     ],
+    #     'reminders': {
+    #         'useDefault': False,
+    #         'overrides': [
+    #             {'method': 'email', 'minutes': 24 * 60},
+    #             {'method': 'popup', 'minutes': 10},
+    #         ],
+    #     },
+    # }
+    # pp.pprint('''*** %r event added:
+    # With: %s
+    # Start: %s
+    # End:   %s''' % (summary.encode('utf-8'),
+    #                 attendees, start_time, end_time))
+
+    # return service.events().insert(calendarId='primary', body=event, sendNotifications=True).execute()
 
 
 if __name__ == '__main__':
