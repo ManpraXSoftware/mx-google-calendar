@@ -3,7 +3,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from calendar_apis.utils import GoogleCalendarApi
+from .utils import GoogleCalendarApi
 
 client_email = settings.GOOGLE_CALENDAR_API['client_email']
 private_key = settings.GOOGLE_CALENDAR_API['private_key']
