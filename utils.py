@@ -32,7 +32,7 @@ class GoogleCalendarApi:
         message = None
         body = {
             'summary': calendar_name,
-            # 'timeZone': 'America/Los_Angeles'  #'timeZone': 'UTC'
+            'timeZone': timeZone  #'timeZone': 'UTC'
         }
         try:
             created_calendar = self.service.calendars().insert(body=body).execute()
@@ -110,14 +110,14 @@ class GoogleCalendarApi:
             service = self.service
             event = service.events().insert(calendarId=calendar_id, sendNotifications=True,
                                             conferenceDataVersion=1, body=event_dic).execute()
-            created=True
-            message="created"
+            status=True
+            message="Event created"
         except Exception as e:
             event=None
             message='Exception in create_event func :[{}]'.format(e)
-            created =False
+            status =False
         print(event)
-        return event,message,created
+        return event,message,status
 
     def create_acl_rule(self, calendar_id, user_email):
         # calendar_id = "8rp4khl5v5d9k9tnsq1mlglgv0@group.calendar.google.com"
@@ -175,7 +175,7 @@ class GoogleCalendarApi:
         try:
             event = self.service.events().get(calendarId=calendarId, eventId=eventId).execute()
             status=True
-            message="Obtained event with eventId {}".format(eventId)
+            message="Event exists"
         except Exception as e:
             event = None
             status=False
@@ -189,14 +189,14 @@ class GoogleCalendarApi:
                 calendarId=calendarId, pageToken=page_token,timeMax=timeMax,timeMin=timeMin).execute()
             events=response['items']
             nextPageToken=response.get('nextPageToken')
-            found=True
+            # found=True
             message="found"
         except Exception as e:
             events=None
             nextPageToken=None
             message="{}".format(e)
-            found=False
-        return events,nextPageToken,message,found
+            # found=False
+        return events,nextPageToken,message
 
 
 
