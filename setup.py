@@ -7,5 +7,5 @@ setup(
    author='Kritika Arora',
    author_email='kritika.arora@manprax.com',
    packages=['calendar_apis'],  #same as name
-   install_requires=['google-api-python-client', 'google-auth-httplib2','google-auth-oauthlib'], #external packages as dependencies
+   install_requires=['google-api-python-client', 'google-auth-httplib2','google-auth-oauthlib','oauth2client'], #external packages as dependencies
 )

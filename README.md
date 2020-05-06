@@ -9,7 +9,7 @@
 
     ]
 
-5.  Include the calendar_apis URLconf in your project urls.py like this::
+5.  Include the calendar_apis URLconf in your project urls.py like this:
 
     path('calendar_apis/', include('calendar_apis.urls')),
 
